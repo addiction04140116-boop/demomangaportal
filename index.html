@@ -3,52 +3,97 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>勤怠・制作報告 ポータル（Demo）</title>
+  <title>漫画制作アシスタント 統合管理ポータル（Demo）</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: #0f172a;
+      background-color: #0b0f19;
       color: #f8fafc;
-      padding: 16px;
+      padding: 20px 16px;
       display: flex;
       justify-content: center;
       min-height: 100vh;
     }
     
+    .portal-container {
+      width: 100%;
+      max-width: 760px;
+    }
+
+    /* ポータルヘッダー */
+    .portal-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .portal-header h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .portal-header p {
+      font-size: 0.88rem;
+      color: #94a3b8;
+      margin-top: 6px;
+    }
+    .demo-pill {
+      display: inline-block;
+      font-size: 0.72rem;
+      background: rgba(59, 130, 246, 0.2);
+      color: #60a5fa;
+      border: 1px solid #3b82f6;
+      padding: 2px 10px;
+      border-radius: 12px;
+      margin-top: 8px;
+    }
+
+    /* メインナビゲーションタブ（勤怠 vs シフト） */
+    .main-nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      background: #1e293b;
+      padding: 6px;
+      border-radius: 14px;
+      border: 1px solid #334155;
+      margin-bottom: 20px;
+    }
+    .main-nav-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .main-nav-btn.active {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    /* カード領域 */
     .app-card {
       background: #1e293b;
       border: 1px solid #334155;
       padding: 24px;
       border-radius: 18px;
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
-      width: 100%;
-      max-width: 680px;
     }
 
-    .card-title {
-      text-align: center;
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: #ffffff;
-      margin-bottom: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .demo-badge {
-      display: inline-block;
-      font-size: 0.72rem;
-      background: rgba(59, 130, 246, 0.2);
-      color: #60a5fa;
-      border: 1px solid #3b82f6;
-      padding: 2px 8px;
-      border-radius: 12px;
-      margin-left: 6px;
-      vertical-align: middle;
-    }
+    .main-section { display: none; }
+    .main-section.active { display: block; }
 
     label {
       display: block;
@@ -68,7 +113,6 @@
       color: #f8fafc;
       font-size: 1rem;
       font-family: inherit;
-      transition: border-color 0.2s;
     }
     select:focus, input:focus, textarea:focus {
       outline: none;
@@ -86,6 +130,9 @@
       border-radius: 12px;
       border: 1px solid #334155;
     }
+    .sub-tabs-2col {
+      grid-template-columns: 1fr 1fr;
+    }
 
     .sub-tab-btn {
       background: transparent;
@@ -100,22 +147,15 @@
       white-space: nowrap;
       transition: all 0.2s;
     }
-    .sub-tab-btn:hover { color: #f8fafc; }
     .sub-tab-btn.active {
-      background: #2563eb;
+      background: #3b82f6;
       color: #ffffff;
-      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
     }
 
-    .tab-section {
-      display: none;
-      margin-top: 18px;
-    }
-    .tab-section.active {
-      display: block;
-    }
+    .tab-section { display: none; margin-top: 18px; }
+    .tab-section.active { display: block; }
 
-    /* 時給打刻ボタン群 */
+    /* 時給打刻 */
     .punch-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -135,16 +175,14 @@
       justify-content: center;
       gap: 6px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      transition: opacity 0.15s, transform 0.1s;
     }
-    .btn-punch:active { transform: scale(0.98); opacity: 0.9; }
-
+    .btn-punch:active { transform: scale(0.98); }
     .btn-start { background: linear-gradient(135deg, #10b981, #059669); }
     .btn-end   { background: linear-gradient(135deg, #ef4444, #dc2626); }
     .btn-break { background: linear-gradient(135deg, #f59e0b, #d97706); }
     .btn-back  { background: linear-gradient(135deg, #06b6d4, #0891b2); }
 
-    /* コピペ ＆ ファイルドロップゾーン */
+    /* 画像ドロップゾーン */
     .drop-zone {
       margin-top: 8px;
       border: 2px dashed #475569;
@@ -153,16 +191,9 @@
       text-align: center;
       background: #0f172a;
       cursor: pointer;
-      transition: all 0.2s;
     }
-    .drop-zone:hover { border-color: #3b82f6; }
-    .drop-zone-text {
-      font-size: 0.88rem;
-      color: #94a3b8;
-    }
-    .drop-zone-text strong {
-      color: #60a5fa;
-    }
+    .drop-zone-text { font-size: 0.88rem; color: #94a3b8; }
+    .drop-zone-text strong { color: #60a5fa; }
     .file-count-badge {
       display: inline-block;
       margin-top: 4px;
@@ -173,13 +204,8 @@
       border-radius: 6px;
     }
 
-    /* プレビュー一覧 */
-    .preview-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 12px;
-    }
+    /* プレビュー */
+    .preview-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
     .preview-box {
       position: relative;
       width: 76px;
@@ -189,11 +215,7 @@
       border: 1px solid #475569;
       background: #000;
     }
-    .preview-box img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+    .preview-box img { width: 100%; height: 100%; object-fit: cover; }
     .preview-remove {
       position: absolute;
       top: 2px;
@@ -206,12 +228,71 @@
       height: 18px;
       font-size: 11px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
-    /* 送信ボタン */
+    /* シフト希望選択リスト */
+    .shift-table {
+      width: 100%;
+      margin-top: 12px;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .shift-table th, .shift-table td {
+      padding: 10px;
+      border-bottom: 1px solid #334155;
+      text-align: left;
+    }
+    .shift-table th { color: #94a3b8; }
+    .shift-opt-btn {
+      padding: 6px 12px;
+      margin-right: 4px;
+      border-radius: 6px;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: #cbd5e1;
+      cursor: pointer;
+      font-size: 0.82rem;
+    }
+    .shift-opt-btn.selected {
+      background: #2563eb;
+      border-color: #3b82f6;
+      color: white;
+    }
+
+    /* カレンダープレビュー */
+    .calendar-card {
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 14px;
+      border: 1px solid #334155;
+    }
+    .cal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .cal-event-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .cal-event {
+      background: #1e293b;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border-left: 4px solid #3b82f6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.88rem;
+    }
+    .cal-event.full { border-color: #10b981; }
+    .cal-event.half { border-color: #f59e0b; }
+
+    /* アクションボタン */
     .btn-action {
       width: 100%;
       margin-top: 18px;
@@ -223,10 +304,7 @@
       cursor: pointer;
       color: white;
       background: linear-gradient(135deg, #3b82f6, #2563eb);
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-      transition: opacity 0.15s, transform 0.1s;
     }
-    .btn-action:active { transform: scale(0.98); opacity: 0.9; }
 
     /* 通知バー */
     #status {
@@ -240,143 +318,233 @@
     }
     .loading { background-color: #334155; color: #f8fafc; }
     .success { background-color: #064e3b; color: #6ee7b7; border: 1px solid #059669; }
-    .error   { background-color: #7f1d1d; color: #fca5a5; border: 1px solid #dc2626; }
 
-    .time-flex {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
+    .time-flex { display: flex; gap: 10px; align-items: center; }
     .time-flex > div { flex: 1; }
 
     @media (max-width: 480px) {
       .app-card { padding: 16px; }
-      .sub-tab-btn { font-size: 0.75rem; padding: 8px 2px; }
-      .btn-punch { font-size: 0.95rem; padding: 14px 8px; }
+      .sub-tab-btn { font-size: 0.72rem; padding: 8px 2px; }
+      .btn-punch { font-size: 0.92rem; padding: 12px 6px; }
     }
   </style>
 </head>
 <body>
 
-<div class="app-card">
-  <div class="card-title">
-    <span>🎨</span>
-    <span>勤怠・制作報告</span>
-    <span class="demo-badge">Portfolio Demo</span>
+<div class="portal-container">
+  <!-- ヘッダー -->
+  <div class="portal-header">
+    <h1><span>🎨</span> 漫画制作アシスタント 統合管理ポータル</h1>
+    <p>現場の事務作業・打刻・原稿提出・シフト調整を完全集約</p>
+    <span class="demo-pill">Portfolio Showcase Demo</span>
   </div>
 
-  <label>👤 ペンネーム（表示名）を選択</label>
-  <select id="penName">
-    <option value="">-- 選択してください --</option>
-    <option value="遠藤" selected>遠藤</option>
-    <option value="佐藤">佐藤</option>
-    <option value="田中">田中</option>
-    <option value="山本">山本</option>
-  </select>
-
-  <!-- サブタブナビ -->
-  <div class="sub-tabs">
-    <button class="sub-tab-btn active" onclick="switchSection('punch', this)">⏱️ 時給打刻</button>
-    <button class="sub-tab-btn" onclick="switchSection('koma', this)">✨ 完成報告</button>
-    <button class="sub-tab-btn" onclick="switchSection('progress', this)">⏳ 進捗報告</button>
-    <button class="sub-tab-btn" onclick="switchSection('adjust', this)">✏️ 打刻修正</button>
+  <!-- メイン切り替えナビ -->
+  <div class="main-nav">
+    <button class="main-nav-btn active" onclick="switchMainTab('kintai', this)">
+      <span>⏱️</span> 勤怠・制作報告
+    </button>
+    <button class="main-nav-btn" onclick="switchMainTab('shift', this)">
+      <span>📅</span> シフト提出・調整
+    </button>
   </div>
 
-  <!-- 1. 時給打刻 -->
-  <div id="sec-punch" class="tab-section active">
-    <div class="punch-grid">
-      <button class="btn-punch btn-start" onclick="sendPunch('▶️ 作業開始')">▶️ 作業開始</button>
-      <button class="btn-punch btn-end" onclick="sendPunch('⏹️ 作業終了')">⏹️ 作業終了</button>
-      <button class="btn-punch btn-break" onclick="sendPunch('☕ 休憩入り')">☕ 休憩入り</button>
-      <button class="btn-punch btn-back" onclick="sendPunch('🏃 休憩戻り')">🏃 休憩戻り</button>
+  <!-- ==================================================== -->
+  <!-- 1. 勤怠・制作報告セクション -->
+  <!-- ==================================================== -->
+  <div id="section-kintai" class="main-section active">
+    <div class="app-card">
+      <label>👤 ペンネームを選択</label>
+      <select id="penName">
+        <option value="">-- 選択してください --</option>
+        <option value="遠藤" selected>遠藤</option>
+        <option value="佐藤">佐藤</option>
+        <option value="田中">田中</option>
+        <option value="山本">山本</option>
+      </select>
+
+      <div class="sub-tabs">
+        <button class="sub-tab-btn active" onclick="switchSubTab('punch', this)">⏱️ 時給打刻</button>
+        <button class="sub-tab-btn" onclick="switchSubTab('koma', this)">✨ 完成報告</button>
+        <button class="sub-tab-btn" onclick="switchSubTab('progress', this)">⏳ 進捗報告</button>
+        <button class="sub-tab-btn" onclick="switchSubTab('adjust', this)">✏️ 打刻修正</button>
+      </div>
+
+      <!-- 1-1. 時給打刻 -->
+      <div id="tab-punch" class="tab-section active">
+        <div class="punch-grid">
+          <button class="btn-punch btn-start" onclick="demoPunch('▶️ 作業開始')">▶️ 作業開始</button>
+          <button class="btn-punch btn-end" onclick="demoPunch('⏹️ 作業終了')">⏹️ 作業終了</button>
+          <button class="btn-punch btn-break" onclick="demoPunch('☕ 休憩入り')">☕ 休憩入り</button>
+          <button class="btn-punch btn-back" onclick="demoPunch('🏃 休憩戻り')">🏃 休憩戻り</button>
+        </div>
+      </div>
+
+      <!-- 1-2. 完成報告 -->
+      <div id="tab-koma" class="tab-section">
+        <label>コマ枠サイズ・区分</label>
+        <select id="komaType">
+          <option value="紫枠（特大・見開き）">🟣 紫枠（特大・見開き）/ ¥13,000</option>
+          <option value="青枠（大ゴマ）">🔵 青枠（大ゴマ）/ ¥6,000</option>
+          <option value="緑枠（中ゴマ）">🟢 緑枠（中ゴマ）/ ¥4,000</option>
+          <option value="赤枠（小ゴマ）">🔴 赤枠（小ゴマ）/ ¥2,000</option>
+          <option value="仕上げ・トーンのみ">⚪ 仕上げ・トーンのみ / ¥1,000</option>
+        </select>
+
+        <label>完成コマ数</label>
+        <input type="number" id="komaCount" value="1" min="1" max="50">
+
+        <label>成果物画像の添付（最大10枚・Ctrl+V対応）</label>
+        <div class="drop-zone" onclick="document.getElementById('komaFileInput').click()">
+          <div class="drop-zone-text">
+            📋 <strong>Ctrl + V でスクショ貼り付け</strong> または ファイル選択<br>
+            <span class="file-count-badge" id="komaCountBadge">0 / 10枚 選択中</span>
+          </div>
+          <input type="file" id="komaFileInput" accept="image/*" multiple style="display:none;" onchange="handleFileInput(event, 'koma')">
+        </div>
+        <div id="komaPreviews" class="preview-container"></div>
+
+        <label>作業メモ・特記事項</label>
+        <textarea id="komaMemo" rows="2" placeholder="例: P12〜P15 背景作画完了しました"></textarea>
+
+        <button class="btn-action" onclick="demoKomaSubmit()">✨ 完成報告を一括送信</button>
+      </div>
+
+      <!-- 1-3. 進捗報告 -->
+      <div id="tab-progress" class="tab-section">
+        <label>現在の作業工程・進捗状況</label>
+        <select id="progressStatus">
+          <option value="下描き・アタリ作成中">✏️ 下描き・アタリ作成中</option>
+          <option value="線画進行中（〜50%）">🖊️ 線画進行中（〜50%）</option>
+          <option value="線画ほぼ完了（〜90%）">✒️ 線画ほぼ完了（〜90%）</option>
+          <option value="ベタ・トーン仕上げ中">🖌️ ベタ・トーン仕上げ中</option>
+          <option value="本日終了・作業引き継ぎ">📋 本日終了・作業引き継ぎ</option>
+        </select>
+
+        <label>進捗状況の画像添付（最大10枚・Ctrl+V対応）</label>
+        <div class="drop-zone" onclick="document.getElementById('progFileInput').click()">
+          <div class="drop-zone-text">
+            📋 <strong>Ctrl + V でスクショ貼り付け</strong> または ファイル選択<br>
+            <span class="file-count-badge" id="progCountBadge">0 / 10枚 選択中</span>
+          </div>
+          <input type="file" id="progFileInput" accept="image/*" multiple style="display:none;" onchange="handleFileInput(event, 'prog')">
+        </div>
+        <div id="progPreviews" class="preview-container"></div>
+
+        <label>申し送り・作業内容メモ</label>
+        <textarea id="progMemo" rows="3" placeholder="例: P08のビル群のパース線まで入れました。明日は窓から入ります。"></textarea>
+
+        <button class="btn-action" onclick="demoProgressSubmit()">⏳ 進捗報告を送信</button>
+      </div>
+
+      <!-- 1-4. 打刻修正申請 -->
+      <div id="tab-adjust" class="tab-section">
+        <label>対象日</label>
+        <input type="date" id="adjustDate">
+
+        <label>正しい作業時間帯</label>
+        <div class="time-flex">
+          <div>
+            <span style="font-size: 0.8rem; color: #94a3b8;">開始</span>
+            <input type="time" id="adjustStart" value="13:00">
+          </div>
+          <span style="color: #94a3b8; padding-top: 24px;">〜</span>
+          <div>
+            <span style="font-size: 0.8rem; color: #94a3b8;">終了</span>
+            <input type="time" id="adjustEnd" value="21:00">
+          </div>
+        </div>
+
+        <label>休憩時間合計（分）</label>
+        <input type="number" id="adjustBreak" value="60" min="0" step="5">
+
+        <label>修正理由・メモ</label>
+        <textarea id="adjustReason" rows="2" placeholder="例: 終了ボタンを押し忘れて離脱してしまいました。"></textarea>
+
+        <button class="btn-action" style="background: linear-gradient(135deg, #f59e0b, #d97706);" onclick="demoAdjustSubmit()">✏️ 打刻修正を申請</button>
+      </div>
+
+      <div id="status"></div>
     </div>
   </div>
 
-  <!-- 2. 完成報告（コマ給申請） -->
-  <div id="sec-koma" class="tab-section">
-    <label>コマ枠サイズ・区分</label>
-    <select id="komaType">
-      <option value="紫枠（特大・見開き）">🟣 紫枠（特大・見開き）</option>
-      <option value="青枠（大ゴマ）">🔵 青枠（大ゴマ）</option>
-      <option value="緑枠（中ゴマ）">🟢 緑枠（中ゴマ）</option>
-      <option value="赤枠（小ゴマ）">🔴 赤枠（小ゴマ）</option>
-      <option value="仕上げ・トーンのみ">⚪ 仕上げ・トーンのみ</option>
-    </select>
+  <!-- ==================================================== -->
+  <!-- 2. シフト提出・調整セクション -->
+  <!-- ==================================================== -->
+  <div id="section-shift" class="main-section">
+    <div class="app-card">
+      <label>👤 ペンネーム</label>
+      <select id="shiftPenName">
+        <option value="遠藤">遠藤</option>
+        <option value="佐藤">佐藤</option>
+        <option value="田中">田中</option>
+      </select>
 
-    <label>完成コマ数</label>
-    <input type="number" id="komaCount" value="1" min="1" max="50">
-
-    <label>成果物画像の添付（最大10枚）</label>
-    <div class="drop-zone" onclick="document.getElementById('komaFileInput').click()">
-      <div class="drop-zone-text">
-        📋 <strong>Ctrl + V でスクショ貼り付け</strong> または クリックして選択<br>
-        <span class="file-count-badge" id="komaCountBadge">0 / 10枚 選択中</span>
+      <div class="sub-tabs sub-tabs-2col">
+        <button class="sub-tab-btn active" onclick="switchShiftSubTab('submit', this)">📝 希望シフト提出</button>
+        <button class="sub-tab-btn" onclick="switchShiftSubTab('view', this)">📅 確定シフト一覧</button>
       </div>
-      <input type="file" id="komaFileInput" accept="image/*" multiple style="display:none;" onchange="handleFileInput(event, 'koma')">
+
+      <!-- 2-1. シフト希望提出 -->
+      <div id="tab-shift-submit" class="tab-section active">
+        <label>対象制作スパン（月前半/後半）</label>
+        <select id="shiftPeriod">
+          <option>2026年10月 前半修羅場期間（1日〜15日）</option>
+          <option>2026年10月 後半修羅場期間（16日〜月末）</option>
+        </select>
+
+        <label>日程ごとの稼働希望（タップして選択）</label>
+        <table class="shift-table">
+          <thead>
+            <tr>
+              <th>日付</th>
+              <th>希望区分</th>
+            </tr>
+          </thead>
+          <tbody id="shiftTableBody">
+            <!-- JSで日付生成 -->
+          </tbody>
+        </table>
+
+        <label>備考・希望連絡事項</label>
+        <textarea id="shiftMemo" rows="2" placeholder="例: 10/05は18時以降からなら入れます！"></textarea>
+
+        <button class="btn-action" style="background: linear-gradient(135deg, #10b981, #059669);" onclick="demoShiftSubmit()">📨 シフト希望を一括提出</button>
+      </div>
+
+      <!-- 2-2. 確定シフトカレンダー閲覧 -->
+      <div id="tab-shift-view" class="tab-section">
+        <div class="calendar-card">
+          <div class="cal-header">
+            <span>📅 2026年10月 作画チーム確定スケジュール</span>
+            <span style="font-size: 0.8rem; color: #10b981;">● 確定済</span>
+          </div>
+          <div class="cal-event-list">
+            <div class="cal-event full">
+              <div>
+                <strong>10/02 (金)</strong> 終日稼働 (13:00〜22:00)
+              </div>
+              <span style="color: #6ee7b7; font-size: 0.8rem;">作画背景・モブ</span>
+            </div>
+            <div class="cal-event half">
+              <div>
+                <strong>10/04 (日)</strong> 午後のみ (17:00〜23:00)
+              </div>
+              <span style="color: #fde047; font-size: 0.8rem;">仕上げ・トーン</span>
+            </div>
+            <div class="cal-event full">
+              <div>
+                <strong>10/07 (水)</strong> 終日稼働 (13:00〜22:00)
+              </div>
+              <span style="color: #6ee7b7; font-size: 0.8rem;">メカ・エフェクト</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="shiftStatus" style="margin-top:16px; padding:12px; border-radius:10px; display:none; text-align:center; font-weight:700;"></div>
     </div>
-    <div id="komaPreviews" class="preview-container"></div>
-
-    <label>作業メモ・特記事項（任意）</label>
-    <textarea id="komaMemo" rows="2" placeholder="例: P12〜P15 背景作画完了しました"></textarea>
-
-    <button class="btn-action" onclick="submitKoma()">✨ 完成報告を一括送信</button>
   </div>
-
-  <!-- 3. 進捗報告 -->
-  <div id="sec-progress" class="tab-section">
-    <label>現在の作業工程・進捗状況</label>
-    <select id="progressStatus">
-      <option value="下描き・アタリ作成中">✏️ 下描き・アタリ作成中</option>
-      <option value="線画進行中（〜50%）">🖊️ 線画進行中（〜50%）</option>
-      <option value="線画ほぼ完了（〜90%）">✒️ 線画ほぼ完了（〜90%）</option>
-      <option value="ベタ・トーン仕上げ中">🖌️ ベタ・トーン仕上げ中</option>
-      <option value="本日終了・作業引き継ぎ">📋 本日終了・作業引き継ぎ</option>
-    </select>
-
-    <label>進捗状況の画像添付（任意・最大10枚）</label>
-    <div class="drop-zone" onclick="document.getElementById('progFileInput').click()">
-      <div class="drop-zone-text">
-        📋 <strong>Ctrl + V でスクショ貼り付け</strong> または クリックして選択<br>
-        <span class="file-count-badge" id="progCountBadge">0 / 10枚 選択中</span>
-      </div>
-      <input type="file" id="progFileInput" accept="image/*" multiple style="display:none;" onchange="handleFileInput(event, 'prog')">
-    </div>
-    <div id="progPreviews" class="preview-container"></div>
-
-    <label>申し送り・作業内容メモ</label>
-    <textarea id="progMemo" rows="3" placeholder="例: ビル群のパース線入れ完了。明日は窓から入ります。"></textarea>
-
-    <button class="btn-action" onclick="submitProgress()">⏳ 進捗報告を送信</button>
-  </div>
-
-  <!-- 4. 打刻修正申請 -->
-  <div id="sec-adjust" class="tab-section">
-    <label>対象日</label>
-    <input type="date" id="adjustDate">
-
-    <label>正しい作業時間帯</label>
-    <div class="time-flex">
-      <div>
-        <span style="font-size: 0.8rem; color: #94a3b8;">開始</span>
-        <input type="time" id="adjustStart" value="13:00" step="60">
-      </div>
-      <span style="color: #94a3b8; padding-top: 24px;">〜</span>
-      <div>
-        <span style="font-size: 0.8rem; color: #94a3b8;">終了</span>
-        <input type="time" id="adjustEnd" value="21:00" step="60">
-      </div>
-    </div>
-
-    <label>休憩時間合計（分）</label>
-    <input type="number" id="adjustBreak" value="60" min="0" step="5">
-
-    <label>修正理由・メモ</label>
-    <textarea id="adjustReason" rows="2" placeholder="例: 終了ボタンを押し忘れて離脱してしまいました。"></textarea>
-
-    <button class="btn-action" style="background: linear-gradient(135deg, #f59e0b, #d97706);" onclick="submitAdjust()">✏️ 打刻修正を申請</button>
-  </div>
-
-  <div id="status"></div>
 </div>
 
 <script>
@@ -386,18 +554,58 @@
 
   document.getElementById('adjustDate').valueAsDate = new Date();
 
-  function switchSection(target, btnEl) {
-    currentActiveTab = target;
-    document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+  // シフト希望の日程行を初期生成
+  const days = ['10/01 (木)', '10/02 (金)', '10/03 (土)', '10/04 (日)', '10/05 (月)'];
+  const tbody = document.getElementById('shiftTableBody');
+  days.forEach((d, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${d}</strong></td>
+      <td>
+        <button type="button" class="shift-opt-btn ${i % 2 === 0 ? 'selected' : ''}" onclick="toggleShiftBtn(this)">終日〇</button>
+        <button type="button" class="shift-opt-btn" onclick="toggleShiftBtn(this)">午後△</button>
+        <button type="button" class="shift-opt-btn ${i % 2 !== 0 ? 'selected' : ''}" onclick="toggleShiftBtn(this)">休み✕</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
 
-    if (btnEl) btnEl.classList.add('active');
-    document.getElementById('sec-' + target).classList.add('active');
+  function toggleShiftBtn(btn) {
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.shift-opt-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+
+  // メインタブ切り替え（勤怠 vs シフト）
+  function switchMainTab(target, btn) {
+    document.querySelectorAll('.main-nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.main-section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('section-' + target).classList.add('active');
+  }
+
+  // 勤怠サブタブ切り替え
+  function switchSubTab(target, btn) {
+    currentActiveTab = target;
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#section-kintai .tab-section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + target).classList.add('active');
     hideStatus();
   }
 
-  function showStatus(text, type) {
-    const s = document.getElementById('status');
+  // シフトサブタブ切り替え
+  function switchShiftSubTab(target, btn) {
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#section-shift .tab-section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-shift-' + target).classList.add('active');
+  }
+
+  function showStatus(text, type, elementId = 'status') {
+    const s = document.getElementById(elementId);
     s.style.display = 'block';
     s.className = type;
     s.innerText = text;
@@ -405,7 +613,7 @@
 
   function hideStatus() {
     const s = document.getElementById('status');
-    s.style.display = 'none';
+    if (s) s.style.display = 'none';
   }
 
   // クリップボード貼り付け（Ctrl + V）
@@ -467,52 +675,51 @@
     });
   }
 
-  // ★デモ用：通信の待ち時間（0.5秒）をシミュレートして確実に緑の完了表示を出す
-  function mockPostData(successMsg, callback) {
+  // デモ用擬似通信
+  function mockPost(msg, callback, elementId = 'status') {
+    showStatus('送信中...', 'loading', elementId);
     setTimeout(() => {
-      showStatus(successMsg, 'success');
+      showStatus(msg, 'success', elementId);
       if (callback) callback();
-    }, 500);
+    }, 450);
   }
 
-  function sendPunch(type) {
-    const penName = document.getElementById('penName').value;
-    if (!penName) return alert('ペンネームを選択してください！');
-
-    showStatus(`${type} を記録中...`, 'loading');
-    mockPostData(`✅ 【デモ】${penName} さんの ${type} を記録しました！`);
+  function demoPunch(type) {
+    const pen = document.getElementById('penName').value;
+    if (!pen) return alert('ペンネームを選択してください');
+    mockPost(`✅ 【デモ】${pen} さんの ${type} を記録しました（スプレッドシート & Discord連携完了）`);
   }
 
-  function submitKoma() {
-    const penName = document.getElementById('penName').value;
-    if (!penName) return alert('ペンネームを選択してください！');
-
-    showStatus('完成報告を送信中...', 'loading');
-    mockPostData(`✅ 【デモ】完成報告を一括送信しました！（画像: ${komaImages.length}枚）`, () => {
+  function demoKomaSubmit() {
+    const pen = document.getElementById('penName').value;
+    if (!pen) return alert('ペンネームを選択してください');
+    mockPost(`✅ 【デモ】完成報告を送信しました！（成果物画像: ${komaImages.length}枚 をGoogleドライブへ格納済）`, () => {
       komaImages = [];
       renderPreviews('koma');
       document.getElementById('komaMemo').value = '';
     });
   }
 
-  function submitProgress() {
-    const penName = document.getElementById('penName').value;
-    if (!penName) return alert('ペンネームを選択してください！');
-
-    showStatus('進捗報告を送信中...', 'loading');
-    mockPostData(`✅ 【デモ】進捗報告を送信しました！（画像: ${progImages.length}枚）`, () => {
+  function demoProgressSubmit() {
+    const pen = document.getElementById('penName').value;
+    if (!pen) return alert('ペンネームを選択してください');
+    mockPost(`✅ 【デモ】進捗報告をDiscordへ共有しました！（添付: ${progImages.length}枚）`, () => {
       progImages = [];
       renderPreviews('prog');
       document.getElementById('progMemo').value = '';
     });
   }
 
-  function submitAdjust() {
-    const penName = document.getElementById('penName').value;
-    if (!penName) return alert('ペンネームを選択してください！');
+  function demoAdjustSubmit() {
+    const pen = document.getElementById('penName').value;
+    if (!pen) return alert('ペンネームを選択してください');
+    mockPost(`✅ 【デモ】打刻修正申請を受理し、給与集計シートへ反映しました！`);
+  }
 
-    showStatus('打刻修正を申請中...', 'loading');
-    mockPostData(`✅ 【デモ】打刻修正を申請しました！`);
+  function demoShiftSubmit() {
+    const pen = document.getElementById('shiftPenName').value;
+    const period = document.getElementById('shiftPeriod').value;
+    mockPost(`✅ 【デモ】${pen} さんの希望シフト（${period}）をカレンダーへ提出しました！`, () => {}, 'shiftStatus');
   }
 </script>
 
